@@ -8,8 +8,10 @@ on:
 env:
     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@logitrack-db:5432/${{ secrets.POSTGRES_DB }}
 
 jobs:
+
 
   # TEST JOBS (RUN IN PARALLEL)
     test-merchant:
@@ -94,10 +96,54 @@ jobs:
             docker push $DOCKER_USERNAME/tracking-service:${{ github.sha }}
             docker push $DOCKER_USERNAME/tracking-service:latest
 
+    setup-db:
+        runs-on: ubuntu-latest
+        needs: [build-merchant, build-rider, build-tracking]
+        environment: production
+        steps:
+            - name: Setup DB container
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                host: ${{ secrets.DEPLOY_HOST }}
+                username: ${{ secrets.DEPLOY_USER }}
+                key: ${{ secrets.DEPLOY_SSH_KEY }}
+                script: |
+                    # create network if it doesnt exist
+                    docker network inspect logitrack-network >/dev/null 2>&1 || \
+                      docker network create logitrack-network
+
+                    # start db if not already running
+                    if ! docker ps --filter "name=logitrack-db" --filter "status=running" | grep -q logitrack-db; then
+                      docker run -d \
+                      --name logitrack-db \
+                      --network logitrack-network \
+                      restart unless-stopped \
+                      -e 
+                      -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                      -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+                      -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
+                      -v pgdata:/var/lib/postgresql/data \
+                      -p 5432:5432 \
+                      postgres:15-alpine
+                    fi
+
+                    # wait for db to be ready
+                    echo "waiting for db..."
+                    MAX_TRIES=5
+                    for i in $(seq 1 $MAX_TRIES); do
+                        if docker exec logitrack-db pg_isready -U ${{ secrets.POSTGRES_USER }}; then
+                        echo "db is ready"
+                        exit 0
+                        fi
+                        echo "Attempt $i - database not ready yet, retrying..."
+                        sleep 5
+                    done
+                    echo "db unhealthy"
+                    exit 1
   # DEPLOY MERCHANT
     deploy-merchant:
         runs-on: ubuntu-latest
-        needs: build-merchant          
+        needs: setup-db          
         environment: production        
         steps:
             - uses: actions/checkout@v4
@@ -121,7 +167,7 @@ jobs:
                     export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
                     # tag current running image as stable before replacing it
-                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh merchant
+                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh merchant-service
 
                     echo ${{ secrets.DOCKER_PASSWORD }} | \
                     docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -133,9 +179,11 @@ jobs:
 
                     docker run -d \
                     --name merchant-service \
+                    --network logitrack-network \
                     --restart unless-stopped \
                     -p 3001:3001 \
                     -e NODE_ENV=production \
+                    -e DATABASE_URL=$DATABASE_URL \
                     ${{ secrets.DOCKER_USERNAME }}/merchant-service:${{ github.sha }}
 
     health-check-merchant:
@@ -193,9 +241,12 @@ jobs:
 
                         docker run -d \
                             --name rider-service \
+                            --network logitrack-network \
                             --restart unless-stopped \
                             -p 3002:3002 \
                             -e NODE_ENV=production \
+                            -e DATABASE_URL=$DATABASE_URL \
+                            -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
                             ${{ secrets.DOCKER_USERNAME }}/rider-service:${{ github.sha }}
     health-check-rider:
         runs-on: ubuntu-latest
@@ -240,7 +291,7 @@ jobs:
                     export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
                     # tag current running image as stable before replacing it
-                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh tracking
+                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh tracking-service
 
                     echo ${{ secrets.DOCKER_PASSWORD }} | \
                     docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -252,9 +303,13 @@ jobs:
 
                     docker run -d \
                     --name tracking-service \
+                    --network logitrack-network \
                     --restart unless-stopped \
                     -p 3003:3003 \
                     -e NODE_ENV=production \
+                    -e DATABASE_URL=$DATABASE_URL \
+                    -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
+                    -e RIDER_SERVICE_URL=http://rider-service:3002 \
                     ${{ secrets.DOCKER_USERNAME }}/tracking-service:${{ github.sha }}
 
     health-check-tracking:
