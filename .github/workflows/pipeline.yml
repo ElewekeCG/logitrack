@@ -110,7 +110,7 @@ jobs:
                 script: |
                     # create network if it doesnt exist
                     docker network inspect logitrack-network >/dev/null 2>&1 || \
-                      docker network create logitrack-network
+                    docker network create logitrack-network
 
                     # start db if not already running
                     if ! docker ps --filter "name=logitrack-db" --filter "status=running" | grep -q logitrack-db; then
