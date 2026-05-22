@@ -23,7 +23,6 @@ const MERCHANT_SERVICE_URL = process.env.MERCHANT_SERVICE_URL;
 
 app.use(express.json());
 
-
 // ── Database connection ───────────────────────────────────────────────────────
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
