@@ -1,0 +1,99 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────
+  # PostgreSQL Database
+  # ─────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: logitrack-db
+    environment:
+      POSTGRES_USER: logitrack
+      POSTGRES_PASSWORD: logitrack_password
+      POSTGRES_DB: logitrack
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logitrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # ─────────────────────────────
+  # Merchant Service
+  # ─────────────────────────────
+  merchant-service:
+    build: ./merchant-service
+    container_name: merchant-service
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://logitrack:logitrack_password@db:5432/logitrack
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+
+  # ─────────────────────────────
+  # Rider Service
+  # ─────────────────────────────
+  rider-service:
+    build: ./rider-service
+    container_name: rider-service
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgresql://logitrack:logitrack_password@db:5432/logitrack
+      MERCHANT_SERVICE_URL: http://merchant-service:3001
+    depends_on:
+      db:
+        condition: service_healthy
+      merchant-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3002/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    
+
+  # ─────────────────────────────
+  # Tracking Service (optional but recommended)
+  # ─────────────────────────────
+  tracking-service:
+    build: ./tracking-service
+    container_name: tracking-service
+    ports:
+      - "3003:3003"
+    environment:
+      DATABASE_URL: postgresql://logitrack:logitrack_password@db:5432/logitrack
+      MERCHANT_SERVICE_URL: http://merchant-service:3001
+      RIDER_SERVICE_URL: http://rider-service:3002
+    depends_on:
+      db:
+        condition: service_healthy
+      merchant-service:
+        condition: service_healthy
+      rider-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3003/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+# ─────────────────────────────
+# Persistent volume for DB
+# ─────────────────────────────
+volumes:
+  pgdata:
