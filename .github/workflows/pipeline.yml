@@ -252,8 +252,8 @@ jobs:
                             -e DATABASE_URL=$DATABASE_URL \
                             -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
                             ${{ secrets.DOCKER_USERNAME }}/rider-service:${{ github.sha }}
-                      env: 
-                        DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@logitrack-db:5432/${{ secrets.POSTGRES_DB }}
+              env: 
+                DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@logitrack-db:5432/${{ secrets.POSTGRES_DB }}
     health-check-rider:
         runs-on: ubuntu-latest
         needs: deploy-rider
