@@ -144,7 +144,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: Wait for Merchant /health
-              run: bash scripts/health-check.sh 3001
+              run: bash scripts/health-check.sh merchant-service 3001
               env:
                 DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
 
@@ -202,7 +202,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: Wait for Rider /health
-              run: bash scripts/health-check.sh 3002
+              run: bash scripts/health-check.sh rider-service 3002
               env: 
                 DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
 
@@ -261,7 +261,7 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: Wait for Tracking /health
-              run: bash scripts/health-check.sh 3003
+              run: bash scripts/health-check.sh tracking-service 3003
               env:
                 DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
 
