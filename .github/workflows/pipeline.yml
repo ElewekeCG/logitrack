@@ -250,7 +250,7 @@ jobs:
                             -p 3002:3002 \
                             -e NODE_ENV=production \
                             -e DATABASE_URL=$DATABASE_URL \
-                            # -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
+                            -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
                             ${{ secrets.DOCKER_USERNAME }}/rider-service:${{ github.sha }}
               env: 
                 DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@logitrack-db:5432/${{ secrets.POSTGRES_DB }}
