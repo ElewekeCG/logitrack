@@ -169,7 +169,7 @@ jobs:
                     export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
                     # tag current running image as stable before replacing it
-                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh merchant-service
+                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag-stable.sh merchant-service
 
                     echo ${{ secrets.DOCKER_PASSWORD }} | \
                     docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -216,7 +216,7 @@ jobs:
                 script: |
                     bash /home/${{ secrets.DEPLOY_USER }}/scripts/rollback.sh merchant-service 3001
 
-                    
+
   # DEPLOY RIDER
     deploy-rider:
         runs-on: ubuntu-latest
@@ -236,7 +236,7 @@ jobs:
                     export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
                     # tag current running image as stable before replacing it
-                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh rider-service
+                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag-stable.sh rider-service
 
                         echo ${{ secrets.DOCKER_PASSWORD }} | \
                             docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -301,7 +301,7 @@ jobs:
                     export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
 
                     # tag current running image as stable before replacing it
-                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag_stable.sh tracking-service
+                    bash /home/${{ secrets.DEPLOY_USER }}/scripts/tag-stable.sh tracking-service
 
                     echo ${{ secrets.DOCKER_PASSWORD }} | \
                     docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
