@@ -96,11 +96,22 @@ jobs:
             docker push $DOCKER_USERNAME/tracking-service:${{ github.sha }}
             docker push $DOCKER_USERNAME/tracking-service:latest
 
-    setup-db:
+    setup:
         runs-on: ubuntu-latest
         needs: [build-merchant, build-rider, build-tracking]
         environment: production
         steps:
+            - uses: actions/checkout@v4
+
+            - name: Copy scripts to server
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                host: ${{ secrets.DEPLOY_HOST }}
+                username: ${{ secrets.DEPLOY_USER }}
+                key: ${{ secrets.DEPLOY_SSH_KEY }}
+                source: "scripts/*"
+                target: "home/${{ secrets.DEPLOY_USER }}/scripts/"
+                
             - name: Setup DB container
               uses: appleboy/ssh-action@v1.0.3
               with:
@@ -114,16 +125,16 @@ jobs:
 
                     # start db if not already running
                     if ! docker ps --filter "name=logitrack-db" --filter "status=running" | grep -q logitrack-db; then
-                      docker run -d \
-                      --name logitrack-db \
-                      --network logitrack-network \
-                      --restart unless-stopped \
-                      -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-                      -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-                      -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
-                      -v pgdata:/var/lib/postgresql/data \
-                      -p 5432:5432 \
-                      postgres:15-alpine
+                    docker run -d \
+                    --name logitrack-db \
+                    --network logitrack-network \
+                    --restart unless-stopped \
+                    -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                    -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+                    -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
+                    -v pgdata:/var/lib/postgresql/data \
+                    -p 5432:5432 \
+                    postgres:15-alpine
                     fi
 
                     # wait for db to be ready
@@ -142,7 +153,7 @@ jobs:
   # DEPLOY MERCHANT
     deploy-merchant:
         runs-on: ubuntu-latest
-        needs: setup-db          
+        needs: setup          
         environment: production        
         steps:
             - uses: actions/checkout@v4
@@ -249,7 +260,7 @@ jobs:
                             --restart unless-stopped \
                             -p 3002:3002 \
                             -e NODE_ENV=production \
-                            -e DATABASE_URL=$DATABASE_URL \
+                            # -e DATABASE_URL=$DATABASE_URL \
                             -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
                             ${{ secrets.DOCKER_USERNAME }}/rider-service:${{ github.sha }}
               env: 
