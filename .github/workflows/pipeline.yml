@@ -350,4 +350,6 @@ jobs:
                 username: ${{ secrets.DEPLOY_USER }}
                 key: ${{ secrets.DEPLOY_SSH_KEY }}
                 script: |
+                    export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+                    export DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@logitrack-db:5432/${{ secrets.POSTGRES_DB }}
                     bash /home/${{ secrets.DEPLOY_USER }}/scripts/rollback.sh tracking-service 3003
