@@ -14,6 +14,9 @@ docker run -d \
   --restart unless-stopped \
   -p $PORT:$PORT \
   -e NODE_ENV=production \
+  -e DATABASE_URL=$DATABASE_URL \
+  -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
+  -e RIDER_SERVICE_URL=http://rider-service:3002 \
   $DOCKER_USERNAME/$SERVICE:stable
 
 echo "✅ Rollback of $SERVICE complete"
