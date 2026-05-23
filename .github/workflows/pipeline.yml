@@ -290,6 +290,7 @@ jobs:
                 script: |
                     bash /home/${{ secrets.DEPLOY_USER }}/scripts/rollback.sh rider-service 3002
 
+                    
   # DEPLOY TRACKING
     deploy-tracking:
         runs-on: ubuntu-latest
