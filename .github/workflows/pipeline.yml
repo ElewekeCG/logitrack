@@ -216,6 +216,7 @@ jobs:
                 script: |
                     bash /home/${{ secrets.DEPLOY_USER }}/scripts/rollback.sh merchant-service 3001
 
+                    
   # DEPLOY RIDER
     deploy-rider:
         runs-on: ubuntu-latest
