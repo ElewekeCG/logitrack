@@ -251,7 +251,7 @@ jobs:
                             --restart unless-stopped \
                             -p 3002:3002 \
                             -e NODE_ENV=production \
-                            -e DATABASE_URL=$DATABASE_URL \
+                            # -e DATABASE_URL=$DATABASE_URL \
                             -e MERCHANT_SERVICE_URL=http://merchant-service:3001 \
                             ${{ secrets.DOCKER_USERNAME }}/rider-service:${{ github.sha }}
               env: 
