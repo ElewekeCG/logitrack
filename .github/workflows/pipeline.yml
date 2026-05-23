@@ -156,16 +156,7 @@ jobs:
         needs: setup          
         environment: production        
         steps:
-            - uses: actions/checkout@v4
-
-            # - name: Copy scripts to server
-            #   uses: appleboy/scp-action@v0.1.7
-            #   with: 
-            #     host: ${{ secrets.DEPLOY_HOST }}
-            #     username: ${{ secrets.DEPLOY_USER }}
-            #     key: ${{ secrets.DEPLOY_SSH_KEY }}
-            #     source: "scripts/"
-            #     target: "/home/${{ secrets.DEPLOY_USER }}/scripts/" 
+            - uses: actions/checkout@v4 
 
             - name: Deploy Merchant Service
               uses: appleboy/ssh-action@v1.0.3
