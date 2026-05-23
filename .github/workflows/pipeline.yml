@@ -110,7 +110,7 @@ jobs:
                 username: ${{ secrets.DEPLOY_USER }}
                 key: ${{ secrets.DEPLOY_SSH_KEY }}
                 source: "scripts/"
-                target: "home/${{ secrets.DEPLOY_USER }}/scripts/"
+                target: "home/${{ secrets.DEPLOY_USER }}/"
                 
             - name: Setup DB container
               uses: appleboy/ssh-action@v1.0.3
