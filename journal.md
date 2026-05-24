@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-During my internship, I was tasked with designing and implementing a full CI/CD pipeline for **LogiTrack**, a microservices-based logistics tracking application consisting of three independent services: a Merchant Service, a Rider Service, and a Tracking Service, each backed by a shared PostgreSQL database.
+My task was to implement a full CI/CD pipeline for **LogiTrack**, a microservices-based logistics tracking application consisting of three services: a Merchant Service, a Rider Service, and a Tracking Service, each backed by a shared PostgreSQL database.
 
 The goal of the project was to automate the entire software delivery lifecycle — from running tests and building Docker images, to deploying each service to an AWS EC2 instance in a controlled, sequential manner with health verification at each stage.
 
@@ -37,12 +37,12 @@ The pipeline was built using **GitHub Actions** and followed a structured workfl
 ## Challenges Faced
 
 ### 1. YAML Indentation and Syntax Errors
-One of the earliest and most recurring challenges was writing valid GitHub Actions YAML. Subtle issues such as incorrect indentation, missing leading slashes in file paths, and trailing spaces after line-continuation backslashes repeatedly caused pipeline failures. These errors were often difficult to trace because the error messages pointed to symptoms rather than root causes.
+I struggled alot with writing the GitHub Actions file. I encountered issues such as incorrect indentation, missing leading slashes in file paths, and trailing spaces after line-continuation backslashes. These errors were difficult to trace but after much debugging I was able to find them.
 
 **Example:** A trailing space after a `\` in a `docker run` command caused Docker to interpret `--restart` as an image name, producing the error `Unable to find image 'restart:latest' locally`. Resolving this required placing the entire `docker run` command on a single line to eliminate all backslashes.
 
 ### 2. Secrets and Environment Variable Management
-Passing secrets safely to remote servers via SSH presented a significant challenge. GitHub Actions secrets cannot be directly used as shell variables on remote machines — attempting to expand `${{ secrets.DATABASE_URL }}` inline inside an SSH script block caused the variable to be empty or malformed on the server. The solution was to use the `envs` parameter provided by `appleboy/ssh-action` to forward variables to the remote environment explicitly.
+Passing secrets safely to remote servers via SSH caused an error as well. GitHub Actions secrets cannot be directly used as shell variables on remote machines — attempting to expand `${{ secrets.DATABASE_URL }}` inline inside an SSH script block caused the variable to be empty or malformed on the server. The solution was to use the `envs` parameter provided by `appleboy/ssh-action` to forward variables to the remote environment explicitly.
 
 ### 3. Docker Networking Between Containers
 Configuring the services to communicate with the PostgreSQL database and with each other required setting up a shared Docker network. Initially, services were attempting to connect to `127.0.0.1:5432` inside their containers rather than reaching the database container by name. This was resolved by creating a dedicated Docker network (`logitrack-network`) and attaching all containers to it, allowing them to resolve each other by container name.
@@ -82,6 +82,4 @@ Complex rollback mechanisms are likely to fail at the worst possible time. The s
 
 ## Conclusion
 
-This project provided substantial hands-on experience with real-world DevOps practices. Implementing a production-grade CI/CD pipeline from scratch — including automated testing, containerised builds, sequential deployments, health verification, and rollback logic — required integrating multiple tools and navigating a wide range of infrastructure challenges.
-
-The most valuable outcome of this project was not the pipeline itself, but the problem-solving process: learning to read error messages carefully, isolate issues systematically, and design systems that are explicit, observable, and resilient to failure. These are skills that will inform how I approach infrastructure and automation work throughout my career.
+I gained hands-on experience with real-world DevOps practices through this project. despite running into numerous errors, I managed to fix them and solidify my understanding of several concepts.
